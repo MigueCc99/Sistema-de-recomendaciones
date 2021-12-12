@@ -138,13 +138,16 @@ public class Recomendaciones {
     public void recomendarUsuario(){
         System.out.print("\nBienvenid@ nuevo usuari@, a continuacion vas a valorar 20 peliculas:\n");
         String entradaTeclado = "";
-        Scanner entradaEscaner = new Scanner(System.in);  
+        Scanner entradaEscaner = new Scanner(System.in);
+        
+        Random random = new Random();
 
         for (int i = 0; i < 20; i++) {
-            System.out.println(recomendadas.get(i));
-            recomendacionUsuario.put(i+1, Double.parseDouble(entradaEscaner.nextLine()));
+            //System.out.println(recomendadas.get(i));
+            //recomendacionUsuario.put(i + 1, Double.parseDouble(entradaEscaner.nextLine()));
+            recomendacionUsuario.put(i + 1, (double)(random.nextInt(5)));
+
         }
-        //obtenerMediaUsuario();
     }
 
     public void getRecomendacionUsuario(){
