@@ -1,3 +1,5 @@
+package sistemarecomendacion;
+
 import java.io.BufferedReader;
 import java.io.FileNotFoundException;
 import java.io.FileReader;
@@ -5,35 +7,44 @@ import java.io.IOException;
 import static java.lang.Math.sqrt;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Collection;
+import static java.util.Comparator.comparingInt;
 import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Scanner;
 import java.util.Random;
 
 import javax.xml.catalog.Catalog;
 
 public class Recomendaciones {
-    private HashMap<Integer,String> movies;
+    private HashMap<Integer, String> movies;
     private ArrayList<Rating> ratings;
     private ArrayList<String> recomendadas = new ArrayList<>();
-    private HashMap<Integer,Double> recomendacionUsuario = new HashMap();
+    private HashMap<Integer, Double> recomendacionUsuario = new HashMap();
     private double mediaUsuario = 1;
-
-    public static class Rating{
+    private HashMap<Integer, Double> mediaPelis = new HashMap<>();
+    private HashMap<Integer, Integer> contadorPelis = new HashMap<>();
+    private HashMap<Integer, Double> pRecomendadas = new HashMap<>();
+    
+    public static class Rating {
+        
         int userId;
         int movieId;
-        double rating;    
+        double rating;
 
-        Rating(int userId, int movieId, double rating){
+        Rating(int userId, int movieId, double rating) {
             this.userId = userId;
             this.movieId = movieId;
             this.rating = rating;
         }
+        
     }
 
-    public Recomendaciones() throws FileNotFoundException, IOException{
+    public Recomendaciones() throws FileNotFoundException, IOException {
         try {
-            movies = loadMovies("movies.csv");
-            ratings = loadRatings("ratings.csv");
+            movies = loadMovies("C://Users/angel/OneDrive/Documentos//NetBeansProjects//SistemaRecomendacion/src/sistemarecomendacion/movies.csv");
+            ratings = loadRatings("C://Users/angel/OneDrive/Documentos//NetBeansProjects//SistemaRecomendacion/src/sistemarecomendacion/ratings.csv");
             recomendarMovies();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
@@ -41,17 +52,23 @@ public class Recomendaciones {
             e.printStackTrace();
         }
     }
-
+    
+    public HashMap<Integer, String> getMovies(){
+        return movies;
+    }
+    
     public void calcularMedia(){
+        
         mediaUsuario = 0;
         
         for (int i = 1; i < recomendacionUsuario.size(); i++){
             mediaUsuario += recomendacionUsuario.get(i);
         }
-
+        
         mediaUsuario = mediaUsuario / (recomendacionUsuario.size()-1);
+        
     }
-
+    
     public double getMedia(){
         return mediaUsuario;
     }
@@ -92,9 +109,9 @@ public class Recomendaciones {
         FileReader f = new FileReader(file);
         BufferedReader b = new BufferedReader(f);
         while ((movie = b.readLine()) != null) {
-            if(movie.split(",")[1].charAt(0) == '"'){
-                movies.put(Integer.parseInt(movie.split(",")[0]), movie.split(",")[1]+movie.split(",")[2]);
-            }else{
+            if (movie.split(",")[1].charAt(0) == '"') {
+                movies.put(Integer.parseInt(movie.split(",")[0]), movie.split(",")[1] + movie.split(",")[2]);
+            } else {
                 movies.put(Integer.parseInt(movie.split(",")[0]), movie.split(",")[1]);
             }
         }
@@ -109,82 +126,106 @@ public class Recomendaciones {
         FileReader f = new FileReader(file);
         BufferedReader b = new BufferedReader(f);
         while ((rating = b.readLine()) != null) {
-            ratings.add(new Rating(Integer.parseInt(rating.split(",")[0]), Integer.parseInt(rating.split(",")[1]), Double.parseDouble(rating.split(",")[2])));
+            ratings.add(new Rating(Integer.parseInt(rating.split(",")[0]), Integer.parseInt(rating.split(",")[1]),
+                    Double.parseDouble(rating.split(",")[2])));
         }
         b.close();
 
         return ratings;
     }
 
-    private void recomendarMovies(){
+    private void recomendarMovies() {
         ArrayList<Integer> indicesMovies = new ArrayList<>();
         Random random = new Random();
         int prueba = 1;
-        for(int i=0; i<20; i++){
+        for (int i = 0; i < 20; i++) {
             /*
-            do{
-                prueba = random.nextInt(movies.size()-1);
-            }while(indicesMovies.contains(prueba));
-            */
-            
-            recomendadas.add(movies.get(i+1));
+             * do{
+             * prueba = random.nextInt(movies.size()-1);
+             * }while(indicesMovies.contains(prueba));
+             */
+
+            recomendadas.add(movies.get(i + 1));
         }
     }
 
-    public ArrayList<String> getRecomendadas(){
+    public ArrayList<String> getRecomendadas() {
         return recomendadas;
     }
 
-    public void recomendarUsuario(){
-        System.out.print("\nBienvenid@ nuevo usuari@, a continuacion vas a valorar 20 peliculas:\n");
+    public void recomendarUsuario() {
+        System.out.print("\nBienvenid@ nuevo usuari@, a continuacion vas a valorar 20 peliculas (0-5):\n\n");
         String entradaTeclado = "";
         Scanner entradaEscaner = new Scanner(System.in);
+        double valor;
         
         Random random = new Random();
 
         for (int i = 0; i < 20; i++) {
-            //System.out.println(recomendadas.get(i));
-            //recomendacionUsuario.put(i + 1, Double.parseDouble(entradaEscaner.nextLine()));
-            recomendacionUsuario.put(i + 1, (double)(random.nextInt(5)));
+            
+            
+            
+            do {
+                System.out.print(recomendadas.get(i) + ": ");
+                valor = Double.parseDouble(entradaEscaner.nextLine());
+                if (valor > 5 || valor < 0){
+                    System.out.println("Valoración fuera del rango, vuelva a puntuar.");
+                }
+            }while (valor > 5 || valor < 0);
+            
+            recomendacionUsuario.put(i + 1, valor);
 
         }
     }
 
-    public void getRecomendacionUsuario(){
-        for (Integer i : recomendacionUsuario.keySet()) { 
-            System.out.println("idMovie: " + i + " Valoración: " + recomendacionUsuario.get(i)); 
+    public void getRecomendacionUsuario() {
+        for (Integer i : recomendacionUsuario.keySet()) {
+            System.out.println("idMovie: " + i + " Valoración: " + recomendacionUsuario.get(i));
         }
     }
-
+    
     public void mostrarRatings(){
+        
         for (int i = 0; i < ratings.size(); i++){
             System.out.println("\nValoracion usuario " + ratings.get(i).userId + " de la pelicula " + ratings.get(i).movieId + " = " + ratings.get(i).rating);
         }
+        
     }
-
+    
     public HashMap<Integer, Double> calcularMediasUsuarios(){
+        
         HashMap<Integer, Double> medias = new HashMap<>();
-        int contador = 0, div;
+        
+        int contador = 0;
+        
         double suma;
-
-        for(int i = 1; i <= 610; i++){
+        int div;
+        
+        for (int i = 1; i <= 610; i++){
+            
             div = 0;
             suma = 0;
-
-            while(i == ratings.get(contador).userId && contador < ratings.size()-1){
-                suma += ratings.get(contador).rating;
-                contador++;
-                div++;
-            }
             
-            medias.put(i, suma/div);
+            while (i == ratings.get(contador).userId && contador < ratings.size()-1){
+               
+               suma += ratings.get(contador).rating;
+               contador ++;
+               div ++;
+               
+            }
+           
+           medias.put(i, suma/div);
+            
         }
-
+        
+        
+        
         return medias;
+        
     }
-
+    
     public double calcularPearson(ArrayList<Double> nuevo, ArrayList<Double> viejo, int id_viejo, HashMap<Integer, Double> medias){
-
+        
         double dividendo = 0;
         double divisor_1 = 0;
         double divisor_2 = 0;
@@ -206,9 +247,9 @@ public class Recomendaciones {
         //System.out.println("\nDividendo = " + dividendo + " y el Divisor = " + divisor);
         
         return dividendo/divisor;
-
+        
     }
-
+    
     public HashMap<Integer, Double> calcularSimilitudes(HashMap<Integer, Double> medias ){
         
         int contador = 0;
@@ -249,7 +290,7 @@ public class Recomendaciones {
         return similitudes;       
         
     }
-
+    
     public void ordenarVecinos(HashMap<Integer, Double> similitudes,ArrayList<Integer> vecinos ){
         
         int temporal;
@@ -265,7 +306,7 @@ public class Recomendaciones {
             }
         
     }
-
+    
     public ArrayList<Integer> elegirVecinos(int k, HashMap<Integer, Double> similitudes){
         
         ArrayList<Integer> vecinos = new ArrayList<>();
@@ -293,50 +334,152 @@ public class Recomendaciones {
         return vecinos;
         
     }
+    
+    public Boolean encontrarVecino(int indice, ArrayList<Integer> vecinos){
+        
+        for (int i = 0; i < vecinos.size(); i++){
+            
+            if (indice == vecinos.get(i))
+                return true;
+            
+        }
+        
+        return false;
+    }
+    
+    public void hacerMedia(HashMap<Integer, Double> mediaPelis, HashMap<Integer, Integer> contadorPelis){
+        
+        for (Integer key: mediaPelis.keySet()){  
+            
+            mediaPelis.put(key, mediaPelis.get(key)/contadorPelis.get(key));
+            
+        }
+        
+        
+    }
+    
+    public void obtenerPelisRecomendadas(int k){
+        
+        int contador = 0;
+        boolean seguir = true;
+        int nuevo = 0;
+        int borrar = 0;
+        
+        for (Integer key: mediaPelis.keySet()){  
+            
+            if (contador < k){        
+                pRecomendadas.put(key, mediaPelis.get(key));
+                contador ++;
+            }
+            else{
+                
+                seguir = true;
+                
+                for (Integer key2: pRecomendadas.keySet()){ 
+                   
+                    if (mediaPelis.get(key) > pRecomendadas.get(key2) && seguir){
+                        nuevo = key;
+                        borrar = key2;
+                        seguir = false;
+                    }
+                    else if (mediaPelis.get(key).compareTo(pRecomendadas.get(key2)) == 0 && contadorPelis.get(key) > contadorPelis.get(key2) && seguir){
+                        
+                        nuevo = key;
+                        borrar = key2;
+                        seguir = false;
+                        
+                    }
+                   
+                }
+               
+                if (!seguir){
+                    pRecomendadas.remove(borrar);
+                    pRecomendadas.put(key, mediaPelis.get(nuevo));
+                }
+               
+                
+            }
+          
+            
+        }   
+        
+        
+        
+    }
+    
+    
+    public HashMap<Integer, Double> calcularMediaPelis (ArrayList<Integer> vecinos){
+        
+        int contador = 0;
+        int id_user_actual;
+        int id_user_antiguo = 1;
+        
+        for (int i = 0; i < ratings.size(); i++){
+            
+            if (encontrarVecino(ratings.get(i).userId,vecinos)){
+                
+                if(mediaPelis.containsKey(ratings.get(i).movieId)){
+                    mediaPelis.put(ratings.get(i).movieId, mediaPelis.get(ratings.get(i).movieId)+ratings.get(i).rating);
+                    contadorPelis.put(ratings.get(i).movieId, contadorPelis.get(ratings.get(i).movieId)+1);
+                }
+                else{
+                    mediaPelis.put(ratings.get(i).movieId, ratings.get(i).rating);
+                    contadorPelis.put(ratings.get(i).movieId, 1);
+                }
+                    
+                
+            }
+
+            
+        }
+        
+        hacerMedia(mediaPelis, contadorPelis);
+        obtenerPelisRecomendadas(10);
+        
+        return pRecomendadas;
+        
+    }
+    
 
     public static void main(String args[]) {
+        
         HashMap<Integer, String> movies = new HashMap<>();
         Recomendaciones recomendaciones;
         ArrayList<String> recomendadas = new ArrayList<>();
         HashMap<Integer, Double> mediasUsuarios = new HashMap<>();
         HashMap<Integer, Double> similitudes = new HashMap<>();
         ArrayList<Integer> vecinos = new ArrayList<>();
-
+        HashMap<Integer, Double> pRecomendadas = new HashMap<>();
+        HashMap<Integer, String> allMovies = new HashMap<>();
+        
         try {
+            
             recomendaciones = new Recomendaciones();
             recomendadas = recomendaciones.getRecomendadas();
-            recomendaciones.recomendarUsuario();      
-            
+            recomendaciones.recomendarUsuario(); 
+            allMovies = recomendaciones.getMovies();
+
             recomendaciones.calcularMedia();
             
-            System.out.println("\n\nMedia usuario: " + recomendaciones.getMedia() + "\n");
-            
-            //recomendaciones.mostrarRatings();
+            System.out.println("\n\nLa media de tus valoraciones ha sido: " + recomendaciones.getMedia() + "\n");
             
             mediasUsuarios = recomendaciones.calcularMediasUsuarios();
 
-            /*for (int i = 1; i <= mediasUsuarios.size(); i++){
-                System.out.println("\nMedia usuario " + i + " = " + mediasUsuarios.get(i));
-            }*/
-            
             similitudes = recomendaciones.calcularSimilitudes(mediasUsuarios);
-            
-            /* System.out.println("\nSimilutdes size " + similitudes.size() + "\n");
-            
-            for (Integer key: similitudes.keySet()){  
-			System.out.println(key+ " = " + similitudes.get(key));
-            }
 
-            */
-            
             vecinos = recomendaciones.elegirVecinos(10, similitudes);
             
-            System.out.println("Size vecinos: " + vecinos.size());
+            pRecomendadas = recomendaciones.calcularMediaPelis(vecinos);
             
-            for (int i = 0; i < vecinos.size(); i++){
-                System.out.println(vecinos.get(i) + "  y similitud = " + similitudes.get(vecinos.get(i)));
-            }
-           
+            System.out.println("\nEn base a tus valoraciones, te recomendamos estas películas:\n");
+            
+            for (Integer key: pRecomendadas.keySet()){  
+            
+                System.out.println(allMovies.get(key));
+            
+            }   
+            
+            
             
         } catch (FileNotFoundException e1) {
             // TODO Auto-generated catch block
